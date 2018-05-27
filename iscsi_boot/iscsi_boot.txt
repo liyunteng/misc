@@ -1,0 +1,36 @@
+配置iscsi启动的步骤
+使用的环境为：
+server： ubunt-14.10-server-amd64 192.168.70.211(静态ip)
+client:  开启pxe的设备
+iscsi中的系统： ubuntu-14.10-server-adm64
+所需要的软件：
+1.server上需要安装iscsitarget isc-dhcp-server tftpd xinetd
+2.iscsi中的系统需要安装open-iscsi
+
+步骤1：
+在server上安装isc-dhcp-server,并配置/etc/dhcp/dhcpd.conf
+搭建好dhcp服务器，并且配置好gpxe
+
+步骤2：
+在server上安装tftpd,xinetd,并且在/etc/xinetd.d/中添加tftp的配置文件
+这里使用的目录为/srv/tftpboot, 将boot.kpxe, menu.c32, menu.gpxe放到
+/srv/tftpboot目录内
+
+步骤3：
+在server上安装iscsitarget，并且配置/etc/iet/ietd.conf
+用来配置使用的iscsi卷，这里使用的为/dev/sdd，iscsi-target的名字为
+iqn-2001-04.com.example:storage.disk2.sys1.xyz
+
+步骤4：
+1.在iscsi卷中安装操作系统，安装完成后chroot过去，安装open-iscsi
+2.touch /etc/iscsi/iscsi.initramfs
+3.修改 /etc/default/grub ,添加启动参数biosdevname=0
+4.修改 /etc/initramfs-tools/initramfs.conf,将DEVICE=改为DEVICE=eth0
+5.修改 /etc/network/interfaces, 将eth0的配置改为
+auto eth0
+iface eth0 inet manuall
+6.修改/usr/share/initramfs-tools/scripts/local-top/iscsi文件
+7.修改fstab中的加载路径
+8.update-initramfs -u
+9.grub-mkconfig -o /boot/grub/grub.cfg
+10.sync && exit

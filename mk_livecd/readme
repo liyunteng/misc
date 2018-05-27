@@ -1,0 +1,22 @@
+1.建立临时的tmproot目录，将要安装的linux目录rsync过去,删除无用的文件，创建缺少的目录
+2.使用mk_squashfs.sh脚本来建立ext3文件系统，会将临时tmproot/目录中的文件拷贝到目标文件系统，
+生成IMG/LiveOS/ext3fs.img,使用mksquashfs对LiveOS/ext3fs.img进行处理生成squashfs文件
+3.将生成的的squashfs文件放到new_root目录中， 在new_root目录中的目录结构为
+ boot/
+ boot/initrd.gz
+ boot/vmlinuz
+ boot/isolinux/
+ boot/isolinux/isolinux.bin
+ boot/isolinux/isolinux.cfg
+ LiveOS/
+ LiveOS/squashfs.img
+         LiveOS/
+	 LiveOS/ext3fs.img
+ 其中boot/isolinux/目录中的内容为/usr/lib/syslinux/中拷贝的，修改isolinux.cfg
+ initrd.gz是由drucat生成的(在initrd.gz中完成挂载LiveOS/squashfs.img,
+ 挂载LiveOS/ext3fs.img,生成/overlay文件，并将/overlay和ext3fs.img使用dmsetp做镜像
+ 实际中使用的根目录，为该镜像, dracut的配置参见config/gentoo/etc/dracut.conf)
+ vmlinuz中要加入对suqashfs的支持
+
+4.使用mkiso.sh脚本，对new_root目录进行处理，生成iso文件，并使用isohybrid处理生成的iso文件，
+ 使得直接使用dd后可引导。
